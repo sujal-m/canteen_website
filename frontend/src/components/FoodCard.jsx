@@ -1,4 +1,5 @@
-﻿import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { memo } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { isVegItem, loginRequiredMessage } from '../utils/menuHelpers'
@@ -65,4 +66,5 @@ function FoodCard({ item, onOpen, size = 'default' }) {
   )
 }
 
-export default FoodCard
+export default memo(FoodCard)
+

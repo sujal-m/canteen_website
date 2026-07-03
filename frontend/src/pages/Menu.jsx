@@ -3,37 +3,33 @@ import { useSearchParams } from 'react-router-dom'
 import { useMenu } from '../context/MenuContext'
 import FoodCard from '../components/FoodCard'
 import ItemModal from '../components/ItemModal'
-import { dietFilters, isVegItem, uiCategories, uiCategoryToBackend } from '../utils/menuHelpers'
+import { uiCategories } from '../utils/menuHelpers'
 
 function Menu() {
   const [params, setParams] = useSearchParams()
-  const initialCategory = params.get('category') || 'All'
-  const initialDiet = params.get('diet') || 'All'
+  const initialCategory = uiCategories.includes(params.get('category') || 'All') ? (params.get('category') || 'All') : 'All'
   const [category, setCategory] = useState(initialCategory)
-  const [diet, setDiet] = useState(initialDiet)
   const [search, setSearch] = useState('')
-  const { items, loading, error, fetchMenu } = useMenu()
+  const { items, loading, error } = useMenu()
   const [activeItem, setActiveItem] = useState(null)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchMenu({ category: uiCategoryToBackend(category), search })
-      const nextParams = {}
-      if (category !== 'All') nextParams.category = category
-      if (diet !== 'All') nextParams.diet = diet
-      if (search) nextParams.search = search
-      setParams(nextParams, { replace: true })
-    }, 250)
+    const nextParams = {}
+    if (category !== 'All') nextParams.category = category
+    if (search) nextParams.search = search
+    setParams(nextParams, { replace: true })
+  }, [category, search, setParams])
 
-    return () => clearTimeout(timer)
-  }, [category, search, fetchMenu, setParams, diet])
-
-  // Diet (Veg/Non-Veg) is filtered client-side since it's derived from the
-  // existing category field rather than a separate backend flag.
   const visibleItems = useMemo(() => {
-    if (diet === 'All') return items
-    return items.filter((item) => (diet === 'Veg' ? isVegItem(item) : !isVegItem(item)))
-  }, [items, diet])
+    const searchTerm = search.trim().toLowerCase()
+
+    return items.filter((item) => {
+      const matchesCategory = category === 'All' || item.category === category
+      const matchesSearch = !searchTerm || item.name.toLowerCase().includes(searchTerm)
+
+      return matchesCategory && matchesSearch
+    })
+  }, [items, category, search])
 
   return (
     <main className="page">
@@ -42,7 +38,6 @@ function Menu() {
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by item name" aria-label="Search menu" />
         <div className="filter-stack">
           <div className="filter-row">{uiCategories.map((item) => <button key={item} className={category === item ? 'active' : ''} type="button" onClick={() => setCategory(item)}>{item}</button>)}</div>
-          <div className="filter-row diet-filter">{dietFilters.map((item) => <button key={item} className={diet === item ? 'active' : ''} type="button" onClick={() => setDiet(item)}>{item !== 'All' && <span className={`diet-dot ${item === 'Veg' ? 'veg' : 'nonveg'}`} aria-hidden="true" />}{item}</button>)}</div>
         </div>
       </div>
       {error && <p className="alert error">{error}</p>}

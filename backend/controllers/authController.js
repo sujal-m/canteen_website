@@ -1,4 +1,4 @@
-﻿const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const User = require("../models/User");
@@ -75,7 +75,7 @@ const registerStudent = async (req, res) => {
         await sendVerificationEmail(user);
         res.status(201).json({ message: "Registration successful. Please check your email to verify your account." });
     } catch (error) {
-        res.status(500).json({ message: "Student registration failed.", error: error.message });
+        res.status(500).json({ message: "Student registration failed." , error: error.message });
     }
 };
 
@@ -209,7 +209,17 @@ const updateProfile = async (req, res) => {
             if (req.body[field] !== undefined) updates[field] = req.body[field];
         });
 
-        if (req.file) {
+        const removeProfilePic = req.body.removeProfilePic === "true" || req.body.removeProfilePic === true;
+        const hasExistingProfilePic = Boolean(req.user.profilePicPublicId || req.user.profilePic);
+
+        if (removeProfilePic) {
+            updates.profilePic = undefined;
+            updates.profilePicPublicId = undefined;
+
+            if (req.user.profilePicPublicId) {
+                await cloudinary.uploader.destroy(req.user.profilePicPublicId);
+            }
+        } else if (req.file) {
             if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
                 return res.status(500).json({ message: "Cloudinary environment variables are not configured." });
             }
@@ -223,8 +233,26 @@ const updateProfile = async (req, res) => {
             }
         }
 
-        const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true }).select(publicUserFields);
-        res.json({ message: "Profile updated successfully.", user });
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: "User not found." });
+
+        Object.entries(updates).forEach(([key, value]) => {
+            user[key] = value;
+        });
+
+        if (removeProfilePic) {
+            user.profilePic = undefined;
+            user.profilePicPublicId = undefined;
+        }
+
+        await user.save();
+        const safeUser = await User.findById(user._id).select(publicUserFields);
+
+        if (removeProfilePic && !hasExistingProfilePic) {
+            return res.json({ message: "No profile picture to remove.", user: safeUser });
+        }
+
+        res.json({ message: removeProfilePic ? "Profile picture removed successfully." : "Profile updated successfully.", user: safeUser });
     } catch (error) {
         res.status(500).json({ message: "Profile update failed.", error: error.message });
     }
@@ -241,8 +269,4 @@ module.exports = {
     getProfile,
     updateProfile
 };
-
-
-
-
 

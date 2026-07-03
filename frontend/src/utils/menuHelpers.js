@@ -8,27 +8,8 @@ export const isVegItem = (item) => item?.category !== 'Non Veg'
 // protected action (add to cart, checkout, etc.), per product spec.
 export const loginRequiredMessage = 'Please login to continue.'
 
-// UI-facing category chips. Backend data only has Veg/Non Veg/Snacks/Drinks,
-// so Breakfast/Lunch are presented as UI groupings; items without a time-of-day
-// tag fall back into Snacks/Drinks/Veg/Non Veg as already stored on the backend.
-export const uiCategories = ['All', 'Breakfast', 'Lunch', 'Snacks', 'Drinks']
+// Shared category chips. These mirror the backend MenuItem.category enum so the
+// admin form, menu filters, and Home page all use the same data model.
+export const uiCategories = ['All', 'Veg', 'Non Veg', 'Snacks', 'Drinks']
 
 export const dietFilters = ['All', 'Veg', 'Non Veg']
-
-// Maps a UI category tab to the backend category value(s) it should request.
-// Breakfast/Lunch aren't real backend categories yet, so they currently query
-// the closest existing backend category as a best-effort mapping.
-export const uiCategoryToBackend = (uiCategory) => {
-  switch (uiCategory) {
-    case 'Breakfast':
-      return 'Veg'
-    case 'Lunch':
-      return 'Non Veg'
-    case 'Snacks':
-      return 'Snacks'
-    case 'Drinks':
-      return 'Drinks'
-    default:
-      return 'All'
-  }
-}

@@ -11,7 +11,6 @@ import ThemeToggle from './ThemeToggle'
 const navLinks = [
   { to: '/', label: 'Home', end: true },
   { to: '/menu', label: 'Menu' },
-  { to: '/cart', label: 'Cart', authOnly: true },
   { to: '/orders', label: 'Order History', authOnly: true },
   { to: '/notifications', label: 'Notifications', authOnly: true },
   { to: '/profile', label: 'Profile', authOnly: true },
@@ -38,11 +37,21 @@ function AppLayout() {
         <nav className={open ? 'nav-links open' : 'nav-links'}>
           {visibleLinks.map((link) => (
             <NavLink key={link.to} to={link.to} end={link.end} onClick={() => setOpen(false)}>
-              {link.label}{link.to === '/cart' && itemCount > 0 ? ` (${itemCount})` : ''}
+              {link.label}
             </NavLink>
           ))}
         </nav>
         <div className="nav-actions">
+          {user && (
+            <Link className="cart-trigger" to="/cart" aria-label={itemCount > 0 ? `Cart, ${itemCount} items` : 'Cart'} title={itemCount > 0 ? `Cart, ${itemCount} items` : 'Cart'}>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="cart-icon">
+                <path d="M3 5h2l1.2 10.2A2 2 0 0 0 8.18 17h8.84a2 2 0 0 0 1.98-1.65L20 8H6.1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8.5 21a1.25 1.25 0 1 0 0-2.5A1.25 1.25 0 0 0 8.5 21Zm8 0a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z" fill="currentColor" />
+                <path d="M7.2 8H20" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+              {itemCount > 0 && <strong className="cart-badge">{itemCount}</strong>}
+            </Link>
+          )}
           <ThemeToggle />
           {user && <NotificationBell />}
           {user ? (
