@@ -2,6 +2,7 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
+import ThemeToggle from './ThemeToggle'
 
 const links = [
   { to: '/admin', label: 'Dashboard' },
@@ -29,7 +30,7 @@ function AdminLayout() {
         <nav className={open ? 'nav-links open' : 'nav-links'}>
           {links.map((link) => <NavLink key={link.to} to={link.to} end={link.to === '/admin'} onClick={() => setOpen(false)}>{link.label}</NavLink>)}
         </nav>
-        <div className="nav-actions"><NotificationBell /><div className="nav-user">{user?.fullName}</div></div>
+        <div className="nav-actions"><ThemeToggle /><NotificationBell /><div className="nav-user">{user?.fullName}</div></div>
       </header>
       <div className="shell-body">
         <aside className="sidebar admin-sidebar">

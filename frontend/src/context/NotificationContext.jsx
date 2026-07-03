@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react-refresh/only-export-components, react-hooks/set-state-in-effect */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import api from '../services/api'
 import { useAuth } from './AuthContext'

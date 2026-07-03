@@ -14,9 +14,17 @@ function NotificationBell() {
 
   return (
     <div className="notification-wrap">
-      <button className="notification-trigger" type="button" onClick={() => setOpen((value) => !value)} aria-label="Notifications">
-        <span aria-hidden="true">Bell</span>
-        {unreadCount > 0 && <strong>{unreadCount > 9 ? '9+' : unreadCount}</strong>}
+      <button
+        className={unreadCount > 0 ? 'notification-trigger has-unread' : 'notification-trigger'}
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="bell-icon">
+          <path d="M18 15.2V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v4.2c0 .379-.146.744-.407 1.017L4.3 17.55A1 1 0 0 0 5 19.25h14a1 1 0 0 0 .7-1.7l-1.293-1.334A1.45 1.45 0 0 1 18 15.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+          <path d="M9.5 21a2.5 2.5 0 0 0 5 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+        </svg>
+        {unreadCount > 0 && <strong className="notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</strong>}
       </button>
 
       {open && (

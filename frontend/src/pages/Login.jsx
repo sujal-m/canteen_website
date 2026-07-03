@@ -1,16 +1,26 @@
 ﻿import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const dashboardPath = (role) => role === 'admin' ? '/admin' : '/dashboard'
+// Home ("/") is the default landing page after login. If the user was
+// redirected here from a protected route (or prompted to log in from a
+// guest "Add to Cart" click), we send them back to that page instead.
+const defaultDestination = (role, from) => {
+  if (from && from !== '/login') return from
+  return role === 'admin' ? '/admin' : '/'
+}
 
 function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const [form, setForm] = useState({ email: '', password: '', remember: false })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const redirectMessage = location.state?.message
+  const from = location.state?.from
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -19,7 +29,7 @@ function Login() {
 
     try {
       const user = await login(form)
-      navigate(dashboardPath(user.role), { replace: true })
+      navigate(defaultDestination(user.role, from), { replace: true })
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed.')
     } finally {
@@ -34,6 +44,7 @@ function Login() {
           <p className="eyebrow">Login</p>
           <h1>Welcome back</h1>
         </div>
+        {redirectMessage && <p className="alert info">{redirectMessage}</p>}
         <form className="form-grid" onSubmit={handleSubmit}>
           <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
           <label>Password<input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label>

@@ -1,20 +1,18 @@
 ﻿/* eslint-disable react-refresh/only-export-components, react-hooks/set-state-in-effect */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import api from '../services/api'
-import { useAuth } from './AuthContext'
 
 const MenuContext = createContext(null)
 const categories = ['All', 'Veg', 'Non Veg', 'Snacks', 'Drinks']
 
+// Menu browsing is public: GET /api/menu does not require auth, so this
+// provider fetches regardless of login state and can sit above ProtectedRoute.
 export function MenuProvider({ children }) {
-  const { user } = useAuth()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const fetchMenu = useCallback(async ({ category = 'All', search = '' } = {}) => {
-    if (!user) return
-
     setLoading(true)
     setError('')
 
@@ -26,7 +24,7 @@ export function MenuProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [])
 
   useEffect(() => {
     fetchMenu()

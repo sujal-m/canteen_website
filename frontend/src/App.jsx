@@ -6,6 +6,7 @@ import { MenuProvider } from './context/MenuContext'
 import { OrderProvider } from './context/OrderContext'
 import { AdminProvider } from './context/AdminContext'
 import { NotificationProvider } from './context/NotificationContext'
+import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 import AdminLayout from './components/AdminLayout'
@@ -32,44 +33,54 @@ import NotificationCenter from './pages/NotificationCenter'
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/verify-email/:token" element={<VerifyEmail />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <ThemeProvider>
+        <AuthProvider>
+          {/* MenuProvider and CartProvider sit above the router's protected
+              boundary so unauthenticated visitors can browse the public Home
+              and Menu pages. CartContext already no-ops until a user is
+              logged in, so this is safe for guests. */}
+          <MenuProvider>
+            <CartProvider>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/verify-email/:token" element={<VerifyEmail />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-          <Route element={<ProtectedRoute roles={['student', 'faculty']} />}>
-            <Route element={<MenuProvider><CartProvider><OrderProvider><NotificationProvider><AppLayout /></NotificationProvider></OrderProvider></CartProvider></MenuProvider>}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/menu" element={<Menu />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/orders" element={<OrderHistory />} />
-              <Route path="/orders/:id" element={<OrderDetails />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/notifications" element={<NotificationCenter />} />
-              <Route path="/profile/edit" element={<EditProfile />} />
-            </Route>
-          </Route>
+                <Route element={<ProtectedRoute roles={['student', 'faculty']} />}>
+                  <Route element={<OrderProvider><NotificationProvider><AppLayout /></NotificationProvider></OrderProvider>}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/menu" element={<Menu />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/orders" element={<OrderHistory />} />
+                    <Route path="/orders/:id" element={<OrderDetails />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/notifications" element={<NotificationCenter />} />
+                    <Route path="/profile/edit" element={<EditProfile />} />
+                  </Route>
+                </Route>
 
-          <Route element={<ProtectedRoute roles={['admin']} />}>
-            <Route element={<AdminProvider><NotificationProvider><AdminLayout /></NotificationProvider></AdminProvider>}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-              <Route path="/admin/orders/:id" element={<OrderDetails />} />
-              <Route path="/admin/menu" element={<AdminMenu />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/notifications" element={<NotificationCenter />} />
-            </Route>
-          </Route>
+                <Route element={<ProtectedRoute roles={['admin']} />}>
+                  <Route element={<AdminProvider><NotificationProvider><AdminLayout /></NotificationProvider></AdminProvider>}>
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
+                    <Route path="/admin/orders" element={<AdminOrders />} />
+                    <Route path="/admin/orders/:id" element={<OrderDetails />} />
+                    <Route path="/admin/menu" element={<AdminMenu />} />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/notifications" element={<NotificationCenter />} />
+                  </Route>
+                </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </CartProvider>
+          </MenuProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

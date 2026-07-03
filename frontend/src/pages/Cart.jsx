@@ -1,5 +1,6 @@
 ﻿import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { isVegItem } from '../utils/menuHelpers'
 
 function Cart() {
   const { cart, loading, error, updateQuantity, removeItem, clearCart } = useCart()
@@ -33,10 +34,14 @@ function Cart() {
 
 function CartRow({ item, onQuantity, onRemove }) {
   const menuItem = item.menuItem
+  const veg = isVegItem(menuItem)
 
   return (
     <article className="cart-row">
-      <img src={menuItem.imageUrl} alt={menuItem.name} />
+      <div className="cart-row-media">
+        <img src={menuItem.imageUrl} alt={menuItem.name} />
+        <span className={`diet-dot ${veg ? 'veg' : 'nonveg'}`} title={veg ? 'Veg' : 'Non-Veg'} aria-hidden="true" />
+      </div>
       <div>
         <h2>{menuItem.name}</h2>
         <p className="muted">Rs. {menuItem.price} each</p>

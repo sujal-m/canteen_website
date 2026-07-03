@@ -1,14 +1,15 @@
-﻿import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useMenu } from '../context/MenuContext'
+import { useOrders } from '../context/OrderContext'
+import { uiCategories } from '../utils/menuHelpers'
 
-const categories = ['Veg', 'Non Veg', 'Snacks', 'Drinks']
-
+// Featured Items and Popular Dishes now live on the public Home page
+// ("/", the default landing page after login). Dashboard remains a
+// personalized quick-access hub for logged-in students/faculty.
 function Dashboard() {
   const { user } = useAuth()
-  const { items, loading } = useMenu()
-  const featured = items.slice(0, 4)
-  const popular = items.slice(4, 8)
+  const { orders } = useOrders()
+  const recentOrders = orders?.slice(0, 3) || []
 
   return (
     <main className="page dashboard-page">
@@ -20,19 +21,26 @@ function Dashboard() {
       </section>
 
       <section className="section-block">
-        <div className="section-heading"><h2>Featured Items</h2><Link to="/menu">View all</Link></div>
-        {loading ? <p className="status">Loading featured items...</p> : <div className="mini-grid">{featured.map((item) => <FoodTile key={item._id} item={item} />)}</div>}
-      </section>
-
-      <section className="section-block">
-        <div className="section-heading"><h2>Popular Dishes</h2><Link to="/menu">Open menu</Link></div>
-        {loading ? <p className="status">Loading popular dishes...</p> : <div className="mini-grid">{popular.map((item) => <FoodTile key={item._id} item={item} />)}</div>}
-      </section>
-
-      <section className="section-block">
         <div className="section-heading"><h2>Categories</h2></div>
-        <div className="category-grid">{categories.map((category) => <Link key={category} to={`/menu?category=${encodeURIComponent(category)}`}>{category}</Link>)}</div>
+        <div className="category-grid">{uiCategories.filter((category) => category !== 'All').map((category) => <Link key={category} to={`/menu?category=${encodeURIComponent(category)}`}>{category}</Link>)}</div>
       </section>
+
+      {recentOrders.length > 0 && (
+        <section className="section-block">
+          <div className="section-heading"><h2>Recent Orders</h2><Link to="/orders">View all</Link></div>
+          <div className="order-list">
+            {recentOrders.map((order) => (
+              <article className="order-card" key={order._id}>
+                <div className="order-card-head">
+                  <div><p className="eyebrow">{order.orderNumber}</p><h2>{order.items.length} item(s)</h2></div>
+                  <span className="status-badge received">{order.status}</span>
+                </div>
+                <div className="order-card-foot"><strong>Total: Rs. {order.totalAmount}</strong><Link className="button secondary" to={`/orders/${order._id}`}>View order</Link></div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="quick-actions">
         <Link to="/menu">Menu</Link>
@@ -41,15 +49,6 @@ function Dashboard() {
         <Link to="/profile">Profile</Link>
       </section>
     </main>
-  )
-}
-
-function FoodTile({ item }) {
-  return (
-    <article className="food-tile">
-      <img src={item.imageUrl} alt={item.name} />
-      <div><h3>{item.name}</h3><p>Rs. {item.price}</p></div>
-    </article>
   )
 }
 
