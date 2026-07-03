@@ -1,4 +1,4 @@
-﻿#root {
+#root {
   min-height: 100vh;
 }
 
@@ -13,12 +13,12 @@
 }
 
 .hero-panel {
-  min-height: calc(100vh - 64px);
+  min-height: calc(30vh - 18px);
   display: grid;
   align-items: center;
-  background: linear-gradient(rgba(15, 29, 43, 0.62), rgba(15, 29, 43, 0.62)), url('./assets/hero.png') center/cover no-repeat;
+  background: linear-gradient(rgba(15, 29, 43, 0.62), rgba(15, 29, 43, 0.62)), url('https://res.cloudinary.com/dsfjs6glm/image/upload/v1783091536/hero-panel2_josig0.jpg') center/cover no-repeat;
   border-radius: 8px;
-  padding: 40px;
+  padding: 24px;
   color: var(--surface);
 }
 
@@ -56,6 +56,12 @@
 .hero-panel .eyebrow {
   color: #9ff3d8;
 }
+
+[data-theme='dark'] .hero-panel .hero-copy-title,
+[data-theme='dark'] .hero-panel .hero-copy {
+  color: #d5eadd;
+}
+
 
 .surface,
 .welcome-band,
@@ -1735,3 +1741,6 @@ textarea:focus {
     width: 86vw;
   }
 }
+
+
+

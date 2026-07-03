@@ -1,7 +1,7 @@
 ﻿import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { isVegItem } from '../utils/menuHelpers'
+import { isVegItem, loginRequiredMessage } from '../utils/menuHelpers'
 
 function ItemModal({ item, onClose }) {
   const navigate = useNavigate()
@@ -17,7 +17,7 @@ function ItemModal({ item, onClose }) {
   const handleAdd = async () => {
     if (!user) {
       onClose()
-      navigate('/login', { state: { from: location.pathname + location.search, message: 'Please login to add items to your cart.' } })
+      navigate('/login', { state: { from: location.pathname + location.search, message: loginRequiredMessage } })
       return
     }
     await addToCart(item._id, 1)

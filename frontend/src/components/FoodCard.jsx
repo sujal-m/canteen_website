@@ -1,7 +1,7 @@
 ﻿import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { isVegItem } from '../utils/menuHelpers'
+import { isVegItem, loginRequiredMessage } from '../utils/menuHelpers'
 
 // Shared card used on Home, Dashboard, and Menu. Fully clickable (opens the
 // item modal via onOpen), shows a veg/non-veg dot, and swaps the Add to Cart
@@ -17,7 +17,7 @@ function FoodCard({ item, onOpen, size = 'default' }) {
 
   const goToLogin = (event) => {
     event.stopPropagation()
-    navigate('/login', { state: { from: location.pathname + location.search, message: 'Please login to add items to your cart.' } })
+    navigate('/login', { state: { from: location.pathname + location.search, message: loginRequiredMessage } })
   }
 
   const handleAdd = async (event) => {

@@ -4,6 +4,10 @@
 
 export const isVegItem = (item) => item?.category !== 'Non Veg'
 
+// Standard message shown when a guest is redirected to /login from a
+// protected action (add to cart, checkout, etc.), per product spec.
+export const loginRequiredMessage = 'Please login to continue.'
+
 // UI-facing category chips. Backend data only has Veg/Non Veg/Snacks/Drinks,
 // so Breakfast/Lunch are presented as UI groupings; items without a time-of-day
 // tag fall back into Snacks/Drinks/Veg/Non Veg as already stored on the backend.
