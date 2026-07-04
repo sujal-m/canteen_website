@@ -1,25 +1,52 @@
-﻿import { useEffect, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import api from '../services/api'
 
+const verificationRequests = new Map()
+
 function VerifyEmail() {
   const { token } = useParams()
-  const [status, setStatus] = useState('loading')
-  const [message, setMessage] = useState('Verifying your email...')
+  const isActiveRef = useRef(true)
+  const [status, setStatus] = useState(() => (token ? 'loading' : 'error'))
+  const [message, setMessage] = useState(() => (token ? 'Verifying your email...' : 'Verification failed.'))
 
   useEffect(() => {
-    const verify = async () => {
-      try {
-        const { data } = await api.get(`/auth/verify-email/${token}`)
-        setStatus('success')
-        setMessage(data.message)
-      } catch (err) {
-        setStatus('error')
-        setMessage(err.response?.data?.message || 'Verification failed.')
+    isActiveRef.current = true
+
+    if (!token) {
+      return () => {
+        isActiveRef.current = false
       }
     }
 
-    verify()
+    const request = verificationRequests.get(token) ?? api.get(`/auth/verify-email/${token}`)
+
+    if (!verificationRequests.has(token)) {
+      verificationRequests.set(token, request)
+    }
+
+    request
+      .then(({ data }) => {
+        if (!isActiveRef.current) return
+
+        setStatus('success')
+        setMessage(data.message || 'Email verified successfully.')
+      })
+      .catch((err) => {
+        if (!isActiveRef.current) return
+
+        setStatus('error')
+        setMessage(err.response?.data?.message || 'Verification failed.')
+      })
+      .finally(() => {
+        if (verificationRequests.get(token) === request) {
+          verificationRequests.delete(token)
+        }
+      })
+
+    return () => {
+      isActiveRef.current = false
+    }
   }, [token])
 
   return (
