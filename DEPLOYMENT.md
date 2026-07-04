@@ -32,6 +32,6 @@
 - Confirm the backend starts cleanly with production environment variables.
 - Confirm CORS allows the deployed frontend origin only.
 - Confirm Cloudinary credentials are set if image uploads are used.
-- Confirm SMTP credentials are set if email notifications are used.
+- Confirm `BREVO_API_KEY` and `EMAIL_FROM` are set if email notifications are used.
 - Confirm the frontend points to the deployed backend URL.
 - Confirm the admin dashboard can authenticate and load data.

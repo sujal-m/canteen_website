@@ -1,36 +1,57 @@
-﻿const nodemailer = require("nodemailer");
+﻿const { BrevoClient } = require("@getbrevo/brevo");
 
-const sendEmail = async ({ to, subject, html }) => {
-    const required = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"];
-    const missing = required.filter((key) => !process.env[key]);
+let brevoClient;
 
-    if (missing.length) {
-        console.log("Email not sent. Missing env:", missing.join(", "));
-        return;
+const getBrevoClient = () => {
+    if (!brevoClient) {
+        brevoClient = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
     }
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-        }
-    });
+    return brevoClient;
+};
+
+const parseSender = (value) => {
+    const fallbackName = "Campus Canteen";
+
+    if (!value) {
+        throw new Error("EMAIL_FROM is required for Brevo email delivery.");
+    }
+
+    const match = value.match(/^(.*)<([^>]+)>$/);
+
+    if (!match) {
+        return { name: fallbackName, email: value.trim() };
+    }
+
+    const name = match[1].trim().replace(/^"|"$/g, "") || fallbackName;
+    const email = match[2].trim();
+
+    return { name, email };
+};
+
+const sendEmail = async ({ to, subject, html }) => {
+    if (!process.env.BREVO_API_KEY) {
+        throw new Error("BREVO_API_KEY is required for Brevo email delivery.");
+    }
+
+    const sender = parseSender(process.env.EMAIL_FROM);
 
     try {
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-            to,
+        await getBrevoClient().transactionalEmails.sendTransacEmail({
+            sender,
+            to: Array.isArray(to) ? to : [{ email: to }],
             subject,
-            html
+            htmlContent: html
         });
 
         console.log("Email sent successfully");
     } catch (error) {
-        console.error("SMTP ERROR:", error);
-        throw error;
+        console.error("BREVO EMAIL ERROR:", error);
+
+        const message = error?.body?.message || error?.message || "Brevo email delivery failed.";
+        const wrappedError = new Error(message);
+        wrappedError.cause = error;
+        throw wrappedError;
     }
 };
 
