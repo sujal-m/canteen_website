@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs");
+﻿const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const User = require("../models/User");
@@ -108,16 +108,20 @@ const registerFaculty = async (req, res) => {
 
 const verifyEmail = async (req, res) => {
     try {
-        const user = await User.findOne({
-            emailVerificationToken: hashToken(req.params.token),
-            emailVerificationExpires: { $gt: new Date() }
-        });
+        const tokenHash = hashToken(req.params.token);
+        const user = await User.findOne({ emailVerificationToken: tokenHash });
 
         if (!user) return res.status(400).json({ message: "Verification link is invalid or expired." });
 
+        if (user.isVerified) {
+            return res.json({ message: "Email is already verified." });
+        }
+
+        if (!user.emailVerificationExpires || user.emailVerificationExpires <= new Date()) {
+            return res.status(400).json({ message: "Verification link is invalid or expired." });
+        }
+
         user.isVerified = true;
-        user.emailVerificationToken = undefined;
-        user.emailVerificationExpires = undefined;
         await user.save();
 
         res.json({ message: "Email verified successfully." });
