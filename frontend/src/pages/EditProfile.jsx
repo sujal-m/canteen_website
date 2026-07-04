@@ -21,6 +21,7 @@ function EditProfile() {
   const [form, setForm] = useState({ fullName: '', gender: '', branch: '', className: '', division: '', designation: '' })
   const [profilePic, setProfilePic] = useState(null)
   const [previewUrl, setPreviewUrl] = useState('')
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [error, setError] = useState('')
@@ -56,6 +57,17 @@ function EditProfile() {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
   }, [previewUrl])
 
+  useEffect(() => {
+    if (!removeConfirmOpen) return undefined
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setRemoveConfirmOpen(false)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [removeConfirmOpen])
+
   const resetTemporaryPreview = () => {
     setProfilePic(null)
     setPreviewUrl('')
@@ -88,11 +100,10 @@ function EditProfile() {
   }
 
   const removePhoto = async () => {
-    if (!window.confirm('Remove your profile picture?')) return
-
     setRemoving(true)
     setError('')
     setSuccess('')
+    setRemoveConfirmOpen(false)
 
     try {
       const payload = new FormData()
@@ -124,7 +135,7 @@ function EditProfile() {
             <div className="actions">
               <label className="button secondary" htmlFor="profilePicInput">{hasProfilePic ? 'Upload New Photo' : 'Upload Photo'}</label>
               {hasProfilePic && (
-                <button className="button secondary" type="button" onClick={removePhoto} disabled={removing || loading}>
+                <button className="button secondary" type="button" onClick={() => setRemoveConfirmOpen(true)} disabled={removing || loading}>
                   {removing ? 'Removing...' : 'Remove Photo'}
                 </button>
               )}
@@ -151,6 +162,20 @@ function EditProfile() {
           <button className="button primary full" type="submit" disabled={loading || removing}>{loading ? 'Saving...' : 'Save profile'}</button>
         </form>
       </div>
+      {removeConfirmOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="remove-photo-title" aria-describedby="remove-photo-description" onClick={() => setRemoveConfirmOpen(false)}>
+          <div className="modal-card confirm-modal" onClick={(event) => event.stopPropagation()}>
+            <h2 id="remove-photo-title">Remove Profile Photo?</h2>
+            <p id="remove-photo-description" className="muted">Are you sure you want to remove your current profile picture?</p>
+            <div className="modal-actions">
+              <button className="button secondary" type="button" onClick={() => setRemoveConfirmOpen(false)} disabled={removing}>Cancel</button>
+              <button className="button primary" type="button" onClick={removePhoto} disabled={removing}>
+                {removing ? 'Removing...' : 'Remove Photo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
