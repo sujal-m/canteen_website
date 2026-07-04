@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
@@ -17,8 +17,10 @@ const defaultAvatar = 'https://placehold.co/128x128?text=User'
 function EditProfile() {
   const navigate = useNavigate()
   const { user, updateUser } = useAuth()
+  const profilePicInputRef = useRef(null)
   const [form, setForm] = useState({ fullName: '', gender: '', branch: '', className: '', division: '', designation: '' })
   const [profilePic, setProfilePic] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [error, setError] = useState('')
@@ -34,7 +36,33 @@ function EditProfile() {
       division: user.division || '',
       designation: user.designation || ''
     })
+    setProfilePic(null)
+    setPreviewUrl('')
   }, [user])
+
+  useEffect(() => {
+    if (!profilePic) {
+      setPreviewUrl('')
+      return undefined
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(profilePic)
+    setPreviewUrl(nextPreviewUrl)
+
+    return () => URL.revokeObjectURL(nextPreviewUrl)
+  }, [profilePic])
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+  }, [previewUrl])
+
+  const resetTemporaryPreview = () => {
+    setProfilePic(null)
+    setPreviewUrl('')
+    if (profilePicInputRef.current) {
+      profilePicInputRef.current.value = ''
+    }
+  }
 
   const submitProfile = async (event) => {
     event.preventDefault()
@@ -49,9 +77,10 @@ function EditProfile() {
       const { data } = await api.put('/auth/profile', payload)
       updateUser(data.user)
       setSuccess(data.message || 'Profile updated successfully.')
-      setProfilePic(null)
+      resetTemporaryPreview()
       navigate('/profile')
     } catch (err) {
+      resetTemporaryPreview()
       setError(err.response?.data?.message || 'Profile update failed.')
     } finally {
       setLoading(false)
@@ -70,7 +99,6 @@ function EditProfile() {
       payload.append('removeProfilePic', 'true')
       const { data } = await api.put('/auth/profile', payload)
       updateUser(data.user)
-      setProfilePic(null)
       setSuccess(data.message || 'Profile picture removed successfully.')
     } catch (err) {
       setError(err.response?.data?.message || 'Could not remove profile picture.')
@@ -82,13 +110,14 @@ function EditProfile() {
   if (!user) return null
 
   const hasProfilePic = Boolean(user.profilePic)
+  const displayedProfilePic = previewUrl || user.profilePic || defaultAvatar
 
   return (
     <main className="page narrow">
       <div className="surface">
         <div className="page-heading"><p className="eyebrow">Profile</p><h1>Edit profile</h1></div>
         <div className="profile-summary compact">
-          <img className="avatar" src={user.profilePic || defaultAvatar} alt="Profile" />
+          <img className="avatar" src={displayedProfilePic} alt="Profile" />
           <div>
             <p className="eyebrow">Profile Photo</p>
             <h2>{hasProfilePic ? 'Upload New Photo' : 'Upload Photo'}</h2>
@@ -103,7 +132,14 @@ function EditProfile() {
           </div>
         </div>
         <form className="form-grid" onSubmit={submitProfile}>
-          <input id="profilePicInput" type="file" accept="image/*" onChange={(e) => setProfilePic(e.target.files?.[0] || null)} style={{ display: 'none' }} />
+          <input
+            ref={profilePicInputRef}
+            id="profilePicInput"
+            type="file"
+            accept="image/*"
+            onChange={(e) => setProfilePic(e.target.files?.[0] || null)}
+            style={{ display: 'none' }}
+          />
           <label>Full Name<input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required /></label>
           <label>Gender<select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}><option value="">Select gender</option>{genders.map((item) => <option key={item}>{item}</option>)}</select></label>
           <label>Branch<select value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value, className: '' })}><option value="">Select branch</option>{branches.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -112,7 +148,7 @@ function EditProfile() {
           {user.role === 'faculty' && <label>Designation<input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} /></label>}
           {success && <p className="alert success">{success}</p>}
           {error && <p className="alert error">{error}</p>}
-          <button className="button primary full" disabled={loading || removing}>{loading ? 'Saving...' : 'Save profile'}</button>
+          <button className="button primary full" type="submit" disabled={loading || removing}>{loading ? 'Saving...' : 'Save profile'}</button>
         </form>
       </div>
     </main>
