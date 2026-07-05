@@ -33,7 +33,7 @@ Add screenshots to a folder such as `docs/screenshots/` and reference them here 
 - React
 - Vite
 - Cloudinary
-- Nodemailer
+- Brevo Email API
 - PDFKit
 
 ## Installation
